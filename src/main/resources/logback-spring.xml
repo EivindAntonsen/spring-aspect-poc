@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <property name="consolePattern"
+              value="%black(%date{dd.MM.yyyy hh:mm:ss:SSS}) %highlight(%-5level) [%blue(%-30.30t{1})] %yellow(%-60.60logger{58}): %msg%n%throwable"/>
+    <property name="detailedPattern"
+              value="%date{dd.MM.yyyy hh:mm:ss:SSSS} %-5level [%-30.30t{1}] %-60.60logger{58}: %msg%n%throwable"/>
+    <property name="filePattern"
+              value="%date{dd.MM.yyyy hh:mm:ss:SSSS} %-5level %-75.75logger{62}: %msg%n%throwable{2}"/>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                ${consolePattern}
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{dd_MM_yyyy}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                ${filePattern}
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="Detailed" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/detailed/%d{dd_MM_yyyy}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>4GB</totalSizeCap>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                ${detailedPattern}
+            </Pattern>
+        </layout>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+        <appender-ref ref="Detailed"/>
+    </root>
+
+    <logger name="no.esa.aoplogging" level="debug" additivity="false">
+        <appender-ref ref="Detailed"/>
+        <appender-ref ref="Console"/>
+    </logger>
+</configuration>
