@@ -1,33 +1,55 @@
 package no.esa.aop.service.exchangerate
 
+import no.esa.aop.exception.NoPreviousExchangeRateResponseException
 import no.esa.aop.integration.ecb.ExchangeRateRestInterface
 import no.esa.aop.repository.currency.ICurrencyDao
 import no.esa.aop.repository.entity.CurrencyEntity
 import no.esa.aop.repository.entity.ExchangeRateEntity
-import no.esa.aop.repository.entity.ExchangeRateRequestEntity
+import no.esa.aop.repository.entity.ExchangeRateResponseEntity
 import no.esa.aop.repository.exchangerate.IExchangeRateDao
-import no.esa.aop.repository.exchangeraterequest.IExchangeRateRequestDao
+import no.esa.aop.repository.exchangeraterequest.IExchangeRateResponseDao
+import no.esa.aop.service.domain.Currency
 import no.esa.aop.service.domain.ExchangeRate
-import no.esa.aop.service.domain.ExchangeRateRequest
-import no.esa.aop.service.mapper.ExchangeRatesRequestMapper
+import no.esa.aop.service.domain.ExchangeRateResponse
+import no.esa.aop.service.mapper.ExchangeRateResponseMapper
 import org.springframework.stereotype.Service
 
 @Service
 class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRestInterface,
 						  private val currencyDao: ICurrencyDao,
 						  private val exchangeRateDao: IExchangeRateDao,
-						  private val exchangeRateRequestDao: IExchangeRateRequestDao) : IExchangeRateService {
+						  private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
 
-	override fun getLatestRates(): ExchangeRateRequest {
-		val ecbExchangeRatesRequest = exchangeRateRestInterface.requestExchangeRates()
+	override fun getLatestRates(): ExchangeRateResponse {
+		val ecbExchangeRatesResponse = exchangeRateRestInterface.requestExchangeRates()
 
-		val exchangeRatesRequest = if (ecbExchangeRatesRequest.statusCode.is2xxSuccessful) {
-			ExchangeRatesRequestMapper.ecbRequestToDomainRequest(ecbExchangeRatesRequest.body!!)
-		} else throw RuntimeException("Test!")
+		val exchangeRateResponse = ExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(ecbExchangeRatesResponse)
 
-		saveRequest(exchangeRatesRequest)
+		saveResponse(exchangeRateResponse)
 
-		return exchangeRatesRequest
+		return exchangeRateResponse
+	}
+
+	override fun getPreviousRates(): ExchangeRateResponse {
+		val exchangeRateResponseEntity = exchangeRateResponseDao.getAll().maxByOrNull {
+			it.id
+		} ?: throw NoPreviousExchangeRateResponseException()
+
+		val currencyEntities = currencyDao.getAll()
+
+		val baseCurrency = currencyEntities.first {
+			it.id == exchangeRateResponseEntity.baseCurrencyId
+		}.let { Currency(it.symbol) }
+
+		val exchangeRates = exchangeRateDao.getByExchangeRateResponseId(exchangeRateResponseEntity.id).map { exchangeRateEntity ->
+			val symbol = currencyEntities.first { currencyEntity ->
+				currencyEntity.id == exchangeRateEntity.currencyId
+			}.symbol
+
+			ExchangeRate(Currency(symbol), exchangeRateEntity.rate)
+		}
+
+		return ExchangeRateResponse(baseCurrency, exchangeRateResponseEntity.dateTime, exchangeRates)
 	}
 
 	private fun getCurrencyEntityIdsAndExchangeRates(currencyEntities: List<CurrencyEntity>,
@@ -49,25 +71,26 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 		}
 	}
 
-	fun saveRequest(exchangeRateRequest: ExchangeRateRequest): Pair<ExchangeRateRequestEntity, List<ExchangeRateEntity>> {
-		saveNewCurrencies(exchangeRateRequest)
-
+	fun saveResponse(exchangeRateResponse: ExchangeRateResponse): Pair<ExchangeRateResponseEntity, List<ExchangeRateEntity>> {
+		saveNewCurrencies(exchangeRateResponse)
 		val currencyEntities = currencyDao.getAll()
-		val baseCurrencyEntity = getBaseCurrencyEntityId(currencyEntities, exchangeRateRequest.baseCurrency.symbol)
-		val exchangeRatesRequestEntity = exchangeRateRequestDao.save(exchangeRateRequest.dateTime, baseCurrencyEntity.id)
+
+		val baseCurrencyEntity = getBaseCurrencyEntityId(currencyEntities, exchangeRateResponse.baseCurrency.symbol)
+		val exchangeRatesResponseEntity = exchangeRateResponseDao.save(exchangeRateResponse.dateTime,
+																	   baseCurrencyEntity.id)
 		val currencyEntityIdsAndExchangeRates = getCurrencyEntityIdsAndExchangeRates(currencyEntities,
 																					 baseCurrencyEntity.id,
-																					 exchangeRateRequest.exchangeRates)
+																					 exchangeRateResponse.exchangeRates)
 		val exchangeRateEntities = saveExchangeRates(currencyEntityIdsAndExchangeRates,
-													 exchangeRatesRequestEntity.id)
+													 exchangeRatesResponseEntity.id)
 
-		return exchangeRatesRequestEntity to exchangeRateEntities
+		return exchangeRatesResponseEntity to exchangeRateEntities
 	}
 
-	fun saveNewCurrencies(exchangeRateRequest: ExchangeRateRequest) {
-		exchangeRateRequest.exchangeRates.map { exchangeRate ->
+	fun saveNewCurrencies(exchangeRateResponse: ExchangeRateResponse) {
+		exchangeRateResponse.exchangeRates.map { exchangeRate ->
 			exchangeRate.currency.symbol
-		}.plus(exchangeRateRequest.baseCurrency.symbol).forEach {
+		}.plus(exchangeRateResponse.baseCurrency.symbol).forEach {
 			currencyDao.save(it)
 		}
 	}

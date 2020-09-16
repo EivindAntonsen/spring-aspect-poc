@@ -1,6 +1,9 @@
 package no.esa.aop.repository.currency
 
+import no.esa.aop.annotation.DataAccess
+import no.esa.aop.annotation.Fails
 import no.esa.aop.annotation.Logged
+import no.esa.aop.aspect.FailureRate
 import no.esa.aop.enums.APIType
 import no.esa.aop.exception.NoSuchCurrencyException
 import no.esa.aop.repository.entity.CurrencyEntity
@@ -22,6 +25,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 
 	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
+	@DataAccess
+	@Fails(FailureRate.SOMETIMES)
 	@Logged(APIType.DATA_ACCESS)
 	override fun save(symbol: String): CurrencyEntity {
 		val parameters = MapSqlParameterSource().apply {

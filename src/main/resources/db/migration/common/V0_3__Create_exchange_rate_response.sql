@@ -1,4 +1,4 @@
-create table ecb.exchange_rate_request
+create table ecb.exchange_rate_response
 (
     id               serial primary key,
     base_currency_id int       not null,

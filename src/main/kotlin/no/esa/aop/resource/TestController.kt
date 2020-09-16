@@ -18,7 +18,5 @@ class TestController(private val testService: ITestService,
 		testService.testFunctionAsArgs { println("Hi!") }
 		testService.testFunctionAsReturn()
 		testService.toString()
-
-		exchangeRateService.getLatestRates()
 	}
 }

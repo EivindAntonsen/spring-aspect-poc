@@ -2,7 +2,7 @@ package no.esa.aop.repository.exchangerate
 
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
-import no.esa.aop.integration.ecb.domain.EcbExchangeRateRequest
+import no.esa.aop.integration.ecb.domain.EcbExchangeRateResponse
 import no.esa.aop.repository.entity.ExchangeRateEntity
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -11,27 +11,27 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import org.springframework.stereotype.Repository
 
 @Repository
-class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate): IExchangeRateDao {
+class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao {
 
 	companion object {
 		const val SCHEMA = "ecb"
 		const val TABLE_NAME = "exchange_rate"
 		const val PRIMARY_KEY = "id"
-		const val EXCHANGE_RATE_REQUEST_ID = "exchange_rate_request_id"
+		const val EXCHANGE_RATE_RESPONSE_ID = "exchange_rate_response_id"
 		const val CURRENCY_ID = "currency_id"
 		const val RATE = "rate"
 	}
 
 	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-	override fun getPrevious(): EcbExchangeRateRequest {
+	override fun getPrevious(): EcbExchangeRateResponse {
 		TODO("Not yet implemented")
 	}
 
 	@Logged(APIType.DATA_ACCESS)
 	override fun saveRate(currencyEntityId: Int, rate: Double, exchangeRateRequestId: Int): ExchangeRateEntity {
 		val parameters = MapSqlParameterSource().apply {
-			addValue(EXCHANGE_RATE_REQUEST_ID, exchangeRateRequestId)
+			addValue(EXCHANGE_RATE_RESPONSE_ID, exchangeRateRequestId)
 			addValue(CURRENCY_ID, currencyEntityId)
 			addValue(RATE, rate)
 		}
@@ -43,6 +43,19 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate): IExchangeRateDao 
 		}.executeAndReturnKey(parameters).toInt()
 
 		return ExchangeRateEntity(id, currencyEntityId, rate)
+	}
+
+	override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
+		val query = "select * from $SCHEMA.$TABLE_NAME where $EXCHANGE_RATE_RESPONSE_ID = :exchange_rate_response_id"
+		val parameters = MapSqlParameterSource().apply {
+			addValue(EXCHANGE_RATE_RESPONSE_ID, id)
+		}
+
+		return namedTemplate.query(query, parameters) { rs, _ ->
+			ExchangeRateEntity(rs.getInt(PRIMARY_KEY),
+							   rs.getInt(CURRENCY_ID),
+							   rs.getDouble(RATE))
+		}
 	}
 
 	override fun getRatesFor(currency: String): Double {

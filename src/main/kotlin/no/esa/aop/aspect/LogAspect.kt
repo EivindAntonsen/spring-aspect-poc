@@ -3,6 +3,9 @@ package no.esa.aop.aspect
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.utils.abbreviate
+import no.esa.aop.utils.getAnnotation
+import no.esa.aop.utils.getKClass
+import no.esa.aop.utils.getLogger
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -23,8 +26,6 @@ class LogAspect {
 		private val DEFAULT_API_TYPE = APIType.INTERNAL
 		private const val MAX_LENGTH_API_TYPE_EVENT_NAME = 8
 	}
-
-	private val defaultLogger = LoggerFactory.getLogger(this::class.java)
 
 	@Around("@annotation(no.esa.aop.annotation.Logged)")
 	fun log(joinPoint: ProceedingJoinPoint): Any? {
@@ -79,47 +80,15 @@ class LogAspect {
 		}
 	}
 
-	private fun getKClass(joinPoint: ProceedingJoinPoint): KClass<out Any>? {
-		// Removing type name from signature string
-		val typeAndQualifiedFunctionName = joinPoint.signature.toString().split(" ")
-		val qualifiedFunctionName = typeAndQualifiedFunctionName[1]
-
-		// Reducing to a qualified class name
-		val qualifiedClassAndFunctionName = qualifiedFunctionName.split(".${joinPoint.signature.name}")
-		val qualifiedClassName = qualifiedClassAndFunctionName[0]
-
-		return try {
-			Class.forName(qualifiedClassName).kotlin
-		} catch (error: ClassNotFoundException) {
-			// This just means we have no specific log level and event name, so we'll use
-			// default values for those two instead.
-			null
-		} catch (error: Exception) {
-			// This is something else, so at least log it.
-			defaultLogger.warn(error.message)
-			null
-		}
-	}
-
 	private fun getApiTypeAndLogLevel(kClass: KClass<*>?, functionName: String): Pair<APIType, LogLevel> {
 		return kClass?.let {
-			getLoggedAnnotationParameters(it, functionName)
+			val annotation = getAnnotation<Logged>(kClass, functionName)
+
+			val apiType = annotation?.apiType ?: DEFAULT_API_TYPE
+			val logLevel = annotation?.logLevel ?: DEFAULT_LOG_LEVEL
+
+			apiType to logLevel
 		} ?: DEFAULT_API_TYPE to DEFAULT_LOG_LEVEL
-	}
-
-	private fun getLoggedAnnotationParameters(kClass: KClass<*>, functionName: String): Pair<APIType, LogLevel> {
-		val annotation = kClass.functions.firstOrNull { function ->
-			function.name == functionName
-		}?.annotations?.filterIsInstance<Logged>()?.firstOrNull()
-
-		val apiType = annotation?.apiType ?: DEFAULT_API_TYPE
-		val logLevel = annotation?.logLevel ?: DEFAULT_LOG_LEVEL
-
-		return apiType to logLevel
-	}
-
-	private fun getLogger(joinPoint: ProceedingJoinPoint): Logger {
-		return LoggerFactory.getLogger(joinPoint.signature.declaringTypeName)
 	}
 
 	private fun getArguments(joinPoint: ProceedingJoinPoint): String {
@@ -134,7 +103,6 @@ class LogAspect {
 				when (result) {
 					is Collection<*> -> append("$className(${result.size})\t$result")
 					is Map<*, *> -> append("$className(${result.size})\t$result")
-					is Exception -> append("$className\t${result.message}")
 					else -> append("$className\t$result")
 				}
 			}.toString().abbreviate()
