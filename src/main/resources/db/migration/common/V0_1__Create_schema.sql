@@ -1,1 +1,1 @@
-create schema if not exists currencies;
+create schema if not exists ecb;

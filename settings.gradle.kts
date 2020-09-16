@@ -1,1 +1,1 @@
-rootProject.name = "aoplogging"
+rootProject.name = "aop"

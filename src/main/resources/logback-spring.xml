@@ -47,7 +47,7 @@
         <appender-ref ref="Detailed"/>
     </root>
 
-    <logger name="no.esa.aoplogging" level="debug" additivity="false">
+    <logger name="no.esa.aop" level="debug" additivity="false">
         <appender-ref ref="Detailed"/>
         <appender-ref ref="Console"/>
     </logger>
