@@ -7,3 +7,7 @@ fun String.abbreviate(maxLength: Int = STRING_MAX_LENGTH): String {
 		substring(0, maxLength - 3).plus("...")
 	} else this
 }
+
+fun Any?.toStringWithId() {
+
+}

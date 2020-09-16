@@ -24,6 +24,7 @@ repositories {
 dependencies {
     val springFrameworkBoot = "org.springframework.boot"
 
+    implementation(group = "org.flywaydb", name = "flyway-core", version = "6.4.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

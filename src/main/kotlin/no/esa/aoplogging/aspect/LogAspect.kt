@@ -22,7 +22,6 @@ class LogAspect {
 		private val DEFAULT_LOG_LEVEL = WARN
 		private val DEFAULT_API_TYPE = APIType.INTERNAL
 		private const val MAX_LENGTH_API_TYPE_EVENT_NAME = 8
-		private const val MAX_TYPE_LENGTH = 18
 	}
 
 	private val defaultLogger = LoggerFactory.getLogger(this::class.java)
@@ -30,14 +29,14 @@ class LogAspect {
 	@Around("@annotation(no.esa.aoplogging.annotation.Logged)")
 	fun log(joinPoint: ProceedingJoinPoint): Any? {
 		val logger = getLogger(joinPoint)
-		val (signature, args) = getSignatureAndArgs(joinPoint)
+		val args = getArguments(joinPoint)
 		val functionName = joinPoint.signature.name
 		val kClass = getKClass(joinPoint)
 		val (apiType, logLevel) = getApiTypeAndLogLevel(kClass, functionName)
 		val firstEventName = padEventName(apiType.firstEventName)
 		val secondEventName = padEventName(apiType.secondEventName)
 
-		val firstEventMessage = "$firstEventName\t$signature$args"
+		val firstEventMessage = "$firstEventName\t$functionName\t$args"
 
 		log(firstEventMessage, logLevel, logger)
 
@@ -45,7 +44,7 @@ class LogAspect {
 			joinPoint.proceed()
 		}
 
-		val secondEventMessage = "$secondEventName\t${getResultAsFormattedString(result)}\tin ${duration}ms."
+		val secondEventMessage = "$secondEventName\t${result.toFormattedString()}\tin ${duration}ms."
 
 		log(secondEventMessage, logLevel, logger)
 
@@ -119,13 +118,6 @@ class LogAspect {
 		return apiType to logLevel
 	}
 
-	private fun getSignatureAndArgs(joinPoint: ProceedingJoinPoint): Pair<String, String> {
-		val signature = getAbbreviatedSignature(joinPoint)
-		val args = getArguments(joinPoint)
-
-		return signature to args
-	}
-
 	private fun getLogger(joinPoint: ProceedingJoinPoint): Logger {
 		return LoggerFactory.getLogger(joinPoint.signature.declaringTypeName)
 	}
@@ -134,59 +126,20 @@ class LogAspect {
 		return joinPoint.args.toList().toString().abbreviate()
 	}
 
-	private fun getAbbreviatedSignature(joinPoint: ProceedingJoinPoint): String {
-		val dataTypeAndRemainingSignature = joinPoint.signature
-				.toString()
-				.replace("no.esa.aoplogging.", "n.e.a.")
-				.replace(" ", "\t")
-				.split("\t")
-		val paddedDataTypePart = dataTypeAndRemainingSignature[0].padEnd(MAX_TYPE_LENGTH)
-		val signatureWithoutGenericArguments = dataTypeAndRemainingSignature[1].split("(")[0]
-
-
-		return "$paddedDataTypePart$signatureWithoutGenericArguments"
-	}
-
-	private fun getResultAsFormattedString(any: Any?): String {
-		return any?.let { result ->
-			val value = result.toString().abbreviate()
+	private fun Any?.toFormattedString(): String {
+		return this?.let { result ->
+			val className = getClassNameFromObject(result) ?: "Anonymous Object"
 
 			StringBuffer().apply {
-				getClassNameFromObject(result).let { className ->
-					if (className != null) {
-						append(className.padEnd(MAX_TYPE_LENGTH))
-					} else append("Anonymous Object".padEnd(MAX_TYPE_LENGTH))
+				when (result) {
+					is Collection<*> -> append("$className(${result.size})\t$result")
+					is Map<*, *> -> append("$className(${result.size})\t$result")
+					is Exception -> append("$className\t${result.message}")
+					else -> append("$className\t$result")
 				}
-
-				if (result is Collection<*>) {
-					val type = getElementType(result)
-					val size = result.size
-
-					append("<$type>($size)")
-				} else append(value)
 			}.toString().abbreviate()
-		} ?: "null".padEnd(MAX_TYPE_LENGTH)
+		} ?: "null"
 	}
 
 	private fun getClassNameFromObject(any: Any?): String? = any?.let { it::class.simpleName }
-
-	private fun areAllElementsOfSameClass(collection: Collection<*>): Boolean {
-		return collection.asSequence().filterNotNull().zipWithNext { current, next ->
-			current::class.simpleName == next::class.simpleName
-		}.all { it }
-	}
-
-	private fun getElementType(collection: Collection<*>): String? {
-		return if (collection.isEmpty()) "<*>" else {
-			val allNonNullsShareSimpleName = areAllElementsOfSameClass(collection)
-
-			if (allNonNullsShareSimpleName) {
-				val collectionWithoutNulls = collection.filterNotNull()
-
-				if (collectionWithoutNulls.isEmpty()) {
-					"<*>"
-				} else collectionWithoutNulls.first()::class.simpleName ?: "null"
-			} else "<R>"
-		}
-	}
 }

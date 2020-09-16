@@ -39,7 +39,7 @@ class TestService : ITestService {
 		return LOREM_IPSUM
 	}
 
-	@Logged(APIType.DATABASE)
+	@Logged(APIType.DATA_ACCESS)
 	override fun testStringsAsApiTypeDatabase(): List<String> {
 		return LOREM_IPSUM.split(".")
 	}

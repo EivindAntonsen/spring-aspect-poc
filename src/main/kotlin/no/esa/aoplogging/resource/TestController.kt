@@ -18,6 +18,6 @@ class TestController(private val testService: ITestService,
 		testService.testFunctionAsReturn()
 		testService.toString()
 
-		exchangeRateRestInterface.requestExchangeRates()
+		val exchangeRates = exchangeRateRestInterface.requestExchangeRates().toString()
 	}
 }
