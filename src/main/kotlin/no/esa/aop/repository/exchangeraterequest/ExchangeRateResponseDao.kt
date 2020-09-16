@@ -1,5 +1,6 @@
 package no.esa.aop.repository.exchangeraterequest
 
+import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.entity.ExchangeRateResponseEntity
@@ -21,8 +22,7 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
 		const val DATETIME = "datetime"
 	}
 
-	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
-
+	@DataAccess
 	@Logged(APIType.DATA_ACCESS)
 	override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
 		val parameters = MapSqlParameterSource().apply {
@@ -39,10 +39,13 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
 		return ExchangeRateResponseEntity(id, baseCurrencyEntityId, dateTime)
 	}
 
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
 	override fun get(id: Int): ExchangeRateResponseEntity {
 		TODO("Not yet implemented")
 	}
 
+	@DataAccess
 	@Logged(APIType.DATA_ACCESS)
 	override fun getAll(): List<ExchangeRateResponseEntity> {
 		val query = "select * from $SCHEMA.$TABLE_NAME"

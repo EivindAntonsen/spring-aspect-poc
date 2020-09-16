@@ -25,8 +25,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 
 	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
+	// @Fails(FailureRate.SOMETIMES)
 	@DataAccess
-	@Fails(FailureRate.SOMETIMES)
 	@Logged(APIType.DATA_ACCESS)
 	override fun save(symbol: String): CurrencyEntity {
 		val parameters = MapSqlParameterSource().apply {
@@ -42,7 +42,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 		return CurrencyEntity(id, symbol)
 	}
 
-	@Logged
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
 	override fun get(id: Int): String {
 		val query = "select * from $SCHEMA.$TABLE_NAME where $PRIMARY_KEY = :id"
 		val parameters = MapSqlParameterSource().apply {
@@ -54,7 +55,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 		} ?: throw NoSuchCurrencyException(id)
 	}
 
-	@Logged
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
 	override fun getCurrencyEntitiesForSymbols(symbols: List<String>): List<CurrencyEntity> {
 		val query = "select * from $SCHEMA.$TABLE_NAME where $SYMBOL like :symbol"
 
@@ -69,6 +71,7 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 		}
 	}
 
+	@DataAccess
 	@Logged(APIType.DATA_ACCESS)
 	override fun getAll(): List<CurrencyEntity> {
 		return jdbcTemplate.query("select * from $SCHEMA.$TABLE_NAME") { rs, _ ->

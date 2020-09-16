@@ -7,3 +7,10 @@ fun String.abbreviate(maxLength: Int = STRING_MAX_LENGTH): String {
 		substring(0, maxLength - 3).plus("...")
 	} else this
 }
+
+fun Any?.toStringSortedAlphabeticallyWithIdFirst() {
+	if (this != null) {
+		// Javas default Object.toString() impl
+		// this::class.java.name + "@" + Integer.toHexString(hashCode())
+	}
+}

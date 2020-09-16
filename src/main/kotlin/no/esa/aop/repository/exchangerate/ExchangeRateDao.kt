@@ -1,5 +1,6 @@
 package no.esa.aop.repository.exchangerate
 
+import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.integration.ecb.domain.EcbExchangeRateResponse
@@ -28,6 +29,7 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
 		TODO("Not yet implemented")
 	}
 
+	@DataAccess
 	@Logged(APIType.DATA_ACCESS)
 	override fun saveRate(currencyEntityId: Int, rate: Double, exchangeRateRequestId: Int): ExchangeRateEntity {
 		val parameters = MapSqlParameterSource().apply {
@@ -45,6 +47,8 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
 		return ExchangeRateEntity(id, currencyEntityId, rate)
 	}
 
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
 	override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
 		val query = "select * from $SCHEMA.$TABLE_NAME where $EXCHANGE_RATE_RESPONSE_ID = :exchange_rate_response_id"
 		val parameters = MapSqlParameterSource().apply {
@@ -58,6 +62,8 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
 		}
 	}
 
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
 	override fun getRatesFor(currency: String): Double {
 		TODO("Not yet implemented")
 	}
