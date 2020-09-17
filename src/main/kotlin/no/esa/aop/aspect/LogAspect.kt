@@ -32,24 +32,43 @@ class LogAspect {
         val functionName = joinPoint.signature.name
         val kClass = getKClass(joinPoint)
         val (apiType, logLevel) = getApiTypeAndLogLevel(kClass, functionName)
-        val firstEventName = padEventName(apiType.firstEventName)
-        val secondEventName = padEventName(apiType.secondEventName)
 
-        val firstEventMessage = "$firstEventName\t$functionName\t$args"
-
-        log(firstEventMessage, logLevel, logger)
-
-        val (result, duration) = executeAndMeasureTimeMillis {
+        val event = LoggableEvent(kClass, functionName, args, LoggingInfo(apiType, logLevel, logger)) {
             joinPoint.proceed()
         }
 
+        return executeAndLogEvent(event)
+    }
+
+    private fun <R> executeAndLogEvent(event: LoggableEvent<R>): R {
+        val firstEventName = padEventName(event.loggingInfo.apiType.firstEventName)
+        val firstEventMessage = "$firstEventName\t${event.functionName}\t${event.args.toString().abbreviate()}"
+
+        log(firstEventMessage,
+            event.loggingInfo.logLevel,
+            event.loggingInfo.logger)
+
+        val (result, duration) = executeAndMeasureTimeMillis {
+            event.interceptedFunction()
+        }
+
+        val secondEventName = padEventName(event.loggingInfo.apiType.secondEventName)
         val secondEventMessage = "$secondEventName\t${result.toFormattedString()}\tin ${duration}ms."
 
-        log(secondEventMessage, logLevel, logger)
+        log(secondEventMessage,
+            event.loggingInfo.logLevel,
+            event.loggingInfo.logger)
 
         return result
     }
 
+    /**
+     * Finds the longest event name of all event names,
+     * and pads [apiEventName] to the same length by
+     * appending whitespaces to the end.
+     *
+     * @param apiEventName is the event name to be padded with whitespaces.
+     */
     private fun padEventName(apiEventName: String): String {
         val maxLength = APIType.values().toList().flatMap { apiType ->
             listOf(apiType.firstEventName.length,
@@ -77,18 +96,18 @@ class LogAspect {
     }
 
     private fun getApiTypeAndLogLevel(kClass: KClass<*>?, functionName: String): Pair<APIType, LogLevel> {
-        return kClass?.let {
+        return if (kClass != null) {
             val annotation = getAnnotation<Logged>(kClass, functionName)
 
             val apiType = annotation?.apiType ?: DEFAULT_API_TYPE
             val logLevel = annotation?.logLevel ?: DEFAULT_LOG_LEVEL
 
             apiType to logLevel
-        } ?: DEFAULT_API_TYPE to DEFAULT_LOG_LEVEL
+        } else DEFAULT_API_TYPE to DEFAULT_LOG_LEVEL
     }
 
-    private fun getArguments(joinPoint: ProceedingJoinPoint): String {
-        return joinPoint.args.toList().toString().abbreviate()
+    private fun getArguments(joinPoint: ProceedingJoinPoint): List<Any> {
+        return joinPoint.args.toList()
     }
 
     private fun Any?.toFormattedString(): String {
@@ -107,3 +126,29 @@ class LogAspect {
 
     private fun getClassNameFromObject(any: Any?): String? = any?.let { it::class.simpleName }
 }
+
+/**
+ * Contains data about how the logging should be done.
+ *
+ * @param apiType tells us if the event was incoming, outgoing, data access etc.
+ * @param logLevel is the severity of the event.
+ * @param logger is an instance of a logger appropriate for the event.
+ */
+data class LoggingInfo(val apiType: APIType,
+                       val logLevel: LogLevel,
+                       val logger: Logger)
+
+/**
+ * This is the actual event to be executed and logged.
+ *
+ * @param kClass is the enclosing class of the intercepted function.
+ * @param functionName
+ * @param args are the arguments passed to the intercepted function.
+ * @param loggingInfo contains information about how to log the event
+ * @param interceptedFunction is the intercepted function that will be executed.
+ */
+data class LoggableEvent<R>(val kClass: KClass<*>?,
+                            val functionName: String,
+                            val args: List<Any>,
+                            val loggingInfo: LoggingInfo,
+                            val interceptedFunction: () -> R)
