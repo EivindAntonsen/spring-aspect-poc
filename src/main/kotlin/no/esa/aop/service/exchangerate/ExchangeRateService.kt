@@ -10,8 +10,10 @@ import no.esa.aop.repository.exchangeraterequest.IExchangeRateResponseDao
 import no.esa.aop.service.domain.Currency
 import no.esa.aop.service.domain.ExchangeRate
 import no.esa.aop.service.domain.ExchangeRateResponse
-import no.esa.aop.service.exception.NoPreviousExchangeRateResponseException
-import no.esa.aop.service.mapper.ExchangeRateResponseMapper
+import no.esa.aop.service.mapper.EcbExchangeRateResponseMapper
+import no.esa.aop.utils.FailureRate
+import no.esa.aop.utils.Outcome
+import no.esa.aop.utils.maybeFail
 import org.springframework.stereotype.Service
 
 @Service
@@ -20,20 +22,22 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 						  private val exchangeRateDao: IExchangeRateDao,
 						  private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
 
-    override fun getLatestRates(baseCurrencySymbol: String?): ExchangeRateResponse {
+    override fun getLatestRates(baseCurrencySymbol: String?): Outcome<ExchangeRateResponse> {
         val ecbExchangeRatesResponse = exchangeRateRestInterface.requestExchangeRates(baseCurrencySymbol)
 
-        val exchangeRateResponse = ExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(ecbExchangeRatesResponse)
+        val domainResponse = EcbExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(ecbExchangeRatesResponse)
 
-        saveResponse(exchangeRateResponse)
+        if (domainResponse is Outcome.Success) {
+            saveResponse(domainResponse.value)
+        }
 
-        return exchangeRateResponse
+        return domainResponse
     }
 
-    override fun getPreviousRates(): ExchangeRateResponse {
+    override fun getPreviousRates(): ExchangeRateResponse? {
         val exchangeRateResponseEntity = exchangeRateResponseDao.getAll().maxByOrNull {
             it.id
-        } ?: throw NoPreviousExchangeRateResponseException()
+        } ?: return null
 
         val currencyEntities = currencyDao.getAll()
 

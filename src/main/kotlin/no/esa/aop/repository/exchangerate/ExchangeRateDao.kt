@@ -3,7 +3,6 @@ package no.esa.aop.repository.exchangerate
 import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
-import no.esa.aop.integration.ecb.domain.EcbExchangeRateResponse
 import no.esa.aop.repository.entity.ExchangeRateEntity
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -24,10 +23,6 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
     }
 
     private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
-
-    override fun getPrevious(): EcbExchangeRateResponse {
-        TODO("Not yet implemented")
-    }
 
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
@@ -60,11 +55,5 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
                                rs.getInt(CURRENCY_ID),
                                rs.getDouble(RATE))
         }
-    }
-
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun getRatesFor(currency: String): Double {
-        TODO("Not yet implemented")
     }
 }
