@@ -8,7 +8,7 @@ package no.esa.aop.enums
  * @property DATA_ACCESS is for data access operations.
  */
 enum class APIType(val firstEventName: String, val secondEventName: String) {
-	INTERNAL("Call", "Result"),
-	EXTERNAL("Request", "Response"),
-	DATA_ACCESS("Query", "Result");
+    INTERNAL("Call", "Result"),
+    EXTERNAL("Request", "Response"),
+    DATA_ACCESS("Query", "Result");
 }

@@ -1,3 +1,3 @@
 package no.esa.aop.resource.model
 
-class Currency(private val symbol: String)
+data class Currency(val symbol: String)

@@ -14,46 +14,57 @@ import java.time.LocalDateTime
 @Repository
 class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateResponseDao {
 
-	companion object {
-		const val SCHEMA = "ecb"
-		const val TABLE_NAME = "exchange_rate_response"
-		const val PRIMARY_KEY = "id"
-		const val BASE_CURRENCY_ID = "base_currency_id"
-		const val DATETIME = "datetime"
-	}
+    companion object {
+        const val SCHEMA = "ecb"
+        const val TABLE_NAME = "exchange_rate_response"
+        const val PRIMARY_KEY = "id"
+        const val BASE_CURRENCY_ID = "base_currency_id"
+        const val DATETIME = "datetime"
+    }
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
-		val parameters = MapSqlParameterSource().apply {
-			addValue(BASE_CURRENCY_ID, baseCurrencyEntityId)
-			addValue(DATETIME, dateTime)
-		}
+    private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-		val id = SimpleJdbcInsert(jdbcTemplate).apply {
-			schemaName = SCHEMA
-			tableName = TABLE_NAME
-			usingGeneratedKeyColumns(PRIMARY_KEY)
-		}.executeAndReturnKey(parameters).toInt()
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
+        val parameters = MapSqlParameterSource().apply {
+            addValue(BASE_CURRENCY_ID, baseCurrencyEntityId)
+            addValue(DATETIME, dateTime)
+        }
 
-		return ExchangeRateResponseEntity(id, baseCurrencyEntityId, dateTime)
-	}
+        val id = SimpleJdbcInsert(jdbcTemplate).apply {
+            schemaName = SCHEMA
+            tableName = TABLE_NAME
+            usingGeneratedKeyColumns(PRIMARY_KEY)
+        }.executeAndReturnKey(parameters).toInt()
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun get(id: Int): ExchangeRateResponseEntity {
-		TODO("Not yet implemented")
-	}
+        return ExchangeRateResponseEntity(id, baseCurrencyEntityId, dateTime)
+    }
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun getAll(): List<ExchangeRateResponseEntity> {
-		val query = "select * from $SCHEMA.$TABLE_NAME"
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun get(id: Int): ExchangeRateResponseEntity? {
+        val query = "select * from $SCHEMA.$TABLE_NAME where $PRIMARY_KEY = :id"
+        val parameters = MapSqlParameterSource().apply {
+            addValue(PRIMARY_KEY, id)
+        }
 
-		return jdbcTemplate.query(query) { rs, _ ->
-			ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
-									   rs.getInt(BASE_CURRENCY_ID),
-									   rs.getTimestamp(DATETIME).toLocalDateTime())
-		}
-	}
+        return namedTemplate.queryForObject(query, parameters) { rs, _ ->
+            ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
+                                       rs.getInt(BASE_CURRENCY_ID),
+                                       rs.getTimestamp(DATETIME).toLocalDateTime())
+        }
+    }
+
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun getAll(): List<ExchangeRateResponseEntity> {
+        val query = "select * from $SCHEMA.$TABLE_NAME"
+
+        return jdbcTemplate.query(query) { rs, _ ->
+            ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
+                                       rs.getInt(BASE_CURRENCY_ID),
+                                       rs.getTimestamp(DATETIME).toLocalDateTime())
+        }
+    }
 }

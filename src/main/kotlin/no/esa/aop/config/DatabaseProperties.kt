@@ -5,5 +5,5 @@ import org.springframework.stereotype.Component
 
 @Component
 data class DatabaseProperties(@Value("\${database.username}") val username: String,
-							  @Value("\${database.password}") val password: String,
-							  @Value("\${database.url}") val url: String)
+                              @Value("\${database.password}") val password: String,
+                              @Value("\${database.url}") val url: String)

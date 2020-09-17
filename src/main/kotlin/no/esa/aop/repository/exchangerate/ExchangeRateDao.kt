@@ -14,57 +14,57 @@ import org.springframework.stereotype.Repository
 @Repository
 class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao {
 
-	companion object {
-		const val SCHEMA = "ecb"
-		const val TABLE_NAME = "exchange_rate"
-		const val PRIMARY_KEY = "id"
-		const val EXCHANGE_RATE_RESPONSE_ID = "exchange_rate_response_id"
-		const val CURRENCY_ID = "currency_id"
-		const val RATE = "rate"
-	}
+    companion object {
+        const val SCHEMA = "ecb"
+        const val TABLE_NAME = "exchange_rate"
+        const val PRIMARY_KEY = "id"
+        const val EXCHANGE_RATE_RESPONSE_ID = "exchange_rate_response_id"
+        const val CURRENCY_ID = "currency_id"
+        const val RATE = "rate"
+    }
 
-	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
+    private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-	override fun getPrevious(): EcbExchangeRateResponse {
-		TODO("Not yet implemented")
-	}
+    override fun getPrevious(): EcbExchangeRateResponse {
+        TODO("Not yet implemented")
+    }
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun saveRate(currencyEntityId: Int, rate: Double, exchangeRateRequestId: Int): ExchangeRateEntity {
-		val parameters = MapSqlParameterSource().apply {
-			addValue(EXCHANGE_RATE_RESPONSE_ID, exchangeRateRequestId)
-			addValue(CURRENCY_ID, currencyEntityId)
-			addValue(RATE, rate)
-		}
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun saveRate(currencyEntityId: Int, rate: Double, exchangeRateRequestId: Int): ExchangeRateEntity {
+        val parameters = MapSqlParameterSource().apply {
+            addValue(EXCHANGE_RATE_RESPONSE_ID, exchangeRateRequestId)
+            addValue(CURRENCY_ID, currencyEntityId)
+            addValue(RATE, rate)
+        }
 
-		val id = SimpleJdbcInsert(jdbcTemplate).apply {
-			schemaName = SCHEMA
-			tableName = TABLE_NAME
-			usingGeneratedKeyColumns(PRIMARY_KEY)
-		}.executeAndReturnKey(parameters).toInt()
+        val id = SimpleJdbcInsert(jdbcTemplate).apply {
+            schemaName = SCHEMA
+            tableName = TABLE_NAME
+            usingGeneratedKeyColumns(PRIMARY_KEY)
+        }.executeAndReturnKey(parameters).toInt()
 
-		return ExchangeRateEntity(id, currencyEntityId, rate)
-	}
+        return ExchangeRateEntity(id, currencyEntityId, rate)
+    }
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
-		val query = "select * from $SCHEMA.$TABLE_NAME where $EXCHANGE_RATE_RESPONSE_ID = :exchange_rate_response_id"
-		val parameters = MapSqlParameterSource().apply {
-			addValue(EXCHANGE_RATE_RESPONSE_ID, id)
-		}
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
+        val query = "select * from $SCHEMA.$TABLE_NAME where $EXCHANGE_RATE_RESPONSE_ID = :exchange_rate_response_id"
+        val parameters = MapSqlParameterSource().apply {
+            addValue(EXCHANGE_RATE_RESPONSE_ID, id)
+        }
 
-		return namedTemplate.query(query, parameters) { rs, _ ->
-			ExchangeRateEntity(rs.getInt(PRIMARY_KEY),
-							   rs.getInt(CURRENCY_ID),
-							   rs.getDouble(RATE))
-		}
-	}
+        return namedTemplate.query(query, parameters) { rs, _ ->
+            ExchangeRateEntity(rs.getInt(PRIMARY_KEY),
+                               rs.getInt(CURRENCY_ID),
+                               rs.getDouble(RATE))
+        }
+    }
 
-	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
-	override fun getRatesFor(currency: String): Double {
-		TODO("Not yet implemented")
-	}
+    @DataAccess
+    @Logged(APIType.DATA_ACCESS)
+    override fun getRatesFor(currency: String): Double {
+        TODO("Not yet implemented")
+    }
 }

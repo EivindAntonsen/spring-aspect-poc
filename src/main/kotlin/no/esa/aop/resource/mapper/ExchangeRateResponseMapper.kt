@@ -9,23 +9,17 @@ import no.esa.aop.resource.model.ExchangeRate as ModelExchangeRate
 
 object ExchangeRateResponseMapper {
 
-	fun domainResponseToModelResponseDTO(exchangeRateResponse: ExchangeRateResponse): ExchangeRateResponseDTO {
-		val baseCurrency = domainCurrencyToModelCurrency(exchangeRateResponse.baseCurrency)
+    fun domainResponseToModelResponseDTO(exchangeRateResponse: ExchangeRateResponse): ExchangeRateResponseDTO {
+        val baseCurrency = exchangeRateResponse.baseCurrency
 
-		val modelExchangeRates = exchangeRateResponse.exchangeRates.map {
-			domainExchangeRateToModelExchangeRate(it)
-		}
+        val modelExchangeRates = exchangeRateResponse.exchangeRates.map {
+            domainExchangeRateToModelExchangeRate(it)
+        }
 
-		return ExchangeRateResponseDTO(exchangeRateResponse.dateTime, baseCurrency, modelExchangeRates)
-	}
+        return ExchangeRateResponseDTO(exchangeRateResponse.dateTime, baseCurrency.symbol, modelExchangeRates)
+    }
 
-	private fun domainCurrencyToModelCurrency(currency: Currency): ModelCurrency {
-		return ModelCurrency(currency.symbol)
-	}
-
-	private fun domainExchangeRateToModelExchangeRate(exchangeRate: ExchangeRate): ModelExchangeRate {
-		val currency = domainCurrencyToModelCurrency(exchangeRate.currency)
-
-		return ModelExchangeRate(currency, exchangeRate.rate)
-	}
+    private fun domainExchangeRateToModelExchangeRate(exchangeRate: ExchangeRate): ModelExchangeRate {
+        return ModelExchangeRate(exchangeRate.currency.symbol, exchangeRate.rate)
+    }
 }
