@@ -5,6 +5,8 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.CurrencyEntity
+import no.esa.aop.utils.FailureRate
+import no.esa.aop.utils.maybeFail
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -55,6 +57,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getCurrencyEntitiesForSymbols(symbols: List<String>): List<CurrencyEntity> {
+        maybeFail(FailureRate.OFTEN)
+
         val query = QueryFileReader.readSqlFile(::getCurrencyEntitiesForSymbols)
 
         return symbols.mapNotNull { symbol ->
@@ -71,6 +75,8 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getAll(): List<CurrencyEntity> {
+        maybeFail(FailureRate.OFTEN)
+
         val query = QueryFileReader.readSqlFile(::getAll)
 
         return jdbcTemplate.query(query) { rs, _ ->

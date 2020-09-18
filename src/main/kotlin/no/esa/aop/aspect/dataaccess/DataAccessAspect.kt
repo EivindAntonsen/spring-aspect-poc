@@ -26,7 +26,7 @@ class DataAccessAspect {
             getLogger(joinPoint).error(error.message)
 
             if (kClass != null && kFunction != null) {
-                throw DataAccessException(kClass, kFunction, error)
+                throw DataAccessException(kFunction, error)
             } else throw error
         }
     }

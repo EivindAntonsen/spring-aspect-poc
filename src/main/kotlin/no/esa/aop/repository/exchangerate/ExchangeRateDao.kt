@@ -5,6 +5,8 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.ExchangeRateEntity
+import no.esa.aop.utils.FailureRate
+import no.esa.aop.utils.maybeFail
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -28,6 +30,8 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun saveRate(currencyEntityId: Int, rate: Double, exchangeRateRequestId: Int): ExchangeRateEntity {
+        maybeFail(FailureRate.RARELY)
+
         val parameters = MapSqlParameterSource().apply {
             addValue(EXCHANGE_RATE_RESPONSE_ID, exchangeRateRequestId)
             addValue(CURRENCY_ID, currencyEntityId)
@@ -46,6 +50,7 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
+        maybeFail(FailureRate.SOMETIMES)
         val query = QueryFileReader.readSqlFile(::getByExchangeRateResponseId)
         val parameters = MapSqlParameterSource().apply {
             addValue(EXCHANGE_RATE_RESPONSE_ID, id)

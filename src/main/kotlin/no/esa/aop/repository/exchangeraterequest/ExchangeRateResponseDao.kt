@@ -5,15 +5,14 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.ExchangeRateResponseEntity
+import no.esa.aop.utils.FailureRate
+import no.esa.aop.utils.maybeFail
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.jvm.jvmName
-import kotlin.reflect.jvm.reflect
 
 @Repository
 class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateResponseDao {
@@ -31,6 +30,8 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
+        maybeFail(FailureRate.OFTEN)
+
         val parameters = MapSqlParameterSource().apply {
             addValue(BASE_CURRENCY_ID, baseCurrencyEntityId)
             addValue(DATETIME, dateTime)
@@ -48,6 +49,8 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun get(id: Int): ExchangeRateResponseEntity? {
+        maybeFail(FailureRate.OFTEN)
+
         val query = QueryFileReader.readSqlFile(::get)
         val parameters = MapSqlParameterSource().apply {
             addValue(PRIMARY_KEY, id)
@@ -63,6 +66,8 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getAll(): List<ExchangeRateResponseEntity> {
+        maybeFail(FailureRate.OFTEN)
+
         val query = QueryFileReader.readSqlFile(::getAll)
 
         return jdbcTemplate.query(query) { rs, _ ->
