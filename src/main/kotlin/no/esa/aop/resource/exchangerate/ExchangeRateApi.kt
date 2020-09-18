@@ -24,7 +24,9 @@ interface ExchangeRateApi {
 
     @ApiOperation(value = "Get previous exchange rates")
     @ApiResponses(ApiResponse(code = 200, message = "Success", response = ExchangeRateResponse::class),
-                  ApiResponse(code = 204, message = "No previous exchange rate response recorded.", response = ExchangeRateResponse::class),
+                  ApiResponse(code = 204,
+                              message = "No previous exchange rate response recorded.",
+                              response = ExchangeRateResponse::class),
                   ApiResponse(code = 500, message = "Internal server error", response = Error::class))
     @RequestMapping(value = ["/exchange-rates/previous"], produces = ["application/json"], method = [RequestMethod.GET])
     fun getPreviousExchangeRates(): ResponseEntity<ExchangeRateResponse>

@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import java.util.*
-import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.jvm.javaMethod
 import no.esa.aop.resource.model.Error as ModelError
 

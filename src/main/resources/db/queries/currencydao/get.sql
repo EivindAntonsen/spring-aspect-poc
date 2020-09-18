@@ -1,1 +1,3 @@
-select * from ecb.currency where id = :id
+select *
+from ecb.currency
+where id = :id

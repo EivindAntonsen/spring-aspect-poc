@@ -1,1 +1,3 @@
-select * from ecb.currency where symbol like :symbol
+select *
+from ecb.currency
+where symbol like :symbol

@@ -1,1 +1,2 @@
-select * from ecb.currency
+select *
+from ecb.currency

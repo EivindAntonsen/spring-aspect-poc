@@ -1,1 +1,2 @@
-select * from ecb.exchange_rate_response
+select *
+from ecb.exchange_rate_response
