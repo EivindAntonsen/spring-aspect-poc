@@ -1,11 +1,6 @@
 # AOP proof of concept
 This is a basic currency exchange rate API that displays aspect oriented programming used for logging and data access operations.
 
-### Setup
-Clone repository, start application from src/main/kotlin/no/esa/aop/application/AopApplication.main
-
-Should be no setup necessary other than Java 8.
-
 ### Annotations
 - Logged - used to annotate the functions that will be intercepted by LogAspect
 - DataAccess - used to annotate the functions that will be intercepted by DataAccessAspect
@@ -21,9 +16,12 @@ Should be no setup necessary other than Java 8.
     
 ---
 
-## Usage
-1. Clone this repository, then run it locally.
+### Setup
+Clone repository, start application from `src/main/kotlin/no/esa/aop/application/AopApplication.main`.
+
+### Usage
+1. Build & run application in your IDE.
 2. View the [Swagger-UI](http://localhost:8096/swagger-ui.html) in a browser
 3. Try the requests in the `exchange-rate-controller` multiple times.
     * they will at times fail, and this is intentional - the point is to see how the failures are handled.
-4. To disable random failures remove all usages of `/DevUtils.maybeFail()`  from code
+4. To disable random failures, remove all usages of `/Utils/DevUtils.maybeFail()`  from code.
