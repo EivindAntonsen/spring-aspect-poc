@@ -7,7 +7,7 @@ import kotlin.reflect.jvm.javaMethod
 
 object QueryFileReader {
 
-    private val logger = LoggerFactory.getLogger("no.get.aop.repository.QueryFileReader")
+    private val logger = LoggerFactory.getLogger("no.esa.aop.repository.QueryFileReader")
 
     fun readSqlFile(callingFunction: KFunction<*>): String {
         val className = callingFunction.javaMethod?.declaringClass?.simpleName?.toLowerCase()
