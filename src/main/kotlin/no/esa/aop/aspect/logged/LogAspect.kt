@@ -1,4 +1,4 @@
-package no.esa.aop.aspect
+package no.esa.aop.aspect.logged
 
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
@@ -126,29 +126,3 @@ class LogAspect {
 
     private fun getClassNameFromObject(any: Any?): String? = any?.let { it::class.simpleName }
 }
-
-/**
- * Contains data about how the logging should be done.
- *
- * @param apiType tells us if the event was incoming, outgoing, data access etc.
- * @param logLevel is the severity of the event.
- * @param logger is an instance of a logger appropriate for the event.
- */
-data class LoggingInfo(val apiType: APIType,
-                       val logLevel: LogLevel,
-                       val logger: Logger)
-
-/**
- * This is the actual event to be executed and logged.
- *
- * @param kClass is the enclosing class of the intercepted function.
- * @param functionName
- * @param args are the arguments passed to the intercepted function.
- * @param loggingInfo contains information about how to log the event
- * @param interceptedFunction is the intercepted function that will be executed.
- */
-data class LoggableEvent<R>(val kClass: KClass<*>?,
-                            val functionName: String,
-                            val args: List<Any>,
-                            val loggingInfo: LoggingInfo,
-                            val interceptedFunction: () -> R)

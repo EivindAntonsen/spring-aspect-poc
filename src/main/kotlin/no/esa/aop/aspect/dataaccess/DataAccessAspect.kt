@@ -1,4 +1,4 @@
-package no.esa.aop.aspect
+package no.esa.aop.aspect.dataaccess
 
 import no.esa.aop.repository.exception.DataAccessException
 import no.esa.aop.utils.getKClass

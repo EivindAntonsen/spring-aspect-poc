@@ -13,6 +13,7 @@ import org.springframework.context.annotation.PropertySource
 import org.springframework.context.annotation.Scope
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
+import java.util.*
 import javax.sql.DataSource
 
 @SpringBootConfiguration
@@ -26,6 +27,11 @@ class ApplicationConfig(private val databaseProperties: DatabaseProperties) {
         val classOnWired = injectionPoint.member.declaringClass
 
         return LoggerFactory.getLogger(classOnWired)
+    }
+
+    @Bean("errorMessages")
+    fun resourceBundle(): ResourceBundle {
+        return ResourceBundle.getBundle("messages", Locale.ENGLISH)
     }
 
     @Bean("ecb")

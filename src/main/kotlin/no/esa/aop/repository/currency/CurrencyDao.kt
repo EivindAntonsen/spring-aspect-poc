@@ -3,6 +3,7 @@ package no.esa.aop.repository.currency
 import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
+import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.CurrencyEntity
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -41,7 +42,7 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun get(id: Int): String? {
-        val query = "select * from $SCHEMA.$TABLE_NAME where $PRIMARY_KEY = :id"
+        val query = QueryFileReader.readSqlFile(::get)
         val parameters = MapSqlParameterSource().apply {
             addValue(PRIMARY_KEY, id)
         }
@@ -54,7 +55,7 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getCurrencyEntitiesForSymbols(symbols: List<String>): List<CurrencyEntity> {
-        val query = "select * from $SCHEMA.$TABLE_NAME where $SYMBOL like :symbol"
+        val query = QueryFileReader.readSqlFile(::getCurrencyEntitiesForSymbols)
 
         return symbols.mapNotNull { symbol ->
             val parameters = MapSqlParameterSource().apply {
@@ -70,7 +71,9 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getAll(): List<CurrencyEntity> {
-        return jdbcTemplate.query("select * from $SCHEMA.$TABLE_NAME") { rs, _ ->
+        val query = QueryFileReader.readSqlFile(::getAll)
+
+        return jdbcTemplate.query(query) { rs, _ ->
             CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
         }
     }

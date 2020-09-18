@@ -11,21 +11,19 @@ import no.esa.aop.service.domain.Currency
 import no.esa.aop.service.domain.ExchangeRate
 import no.esa.aop.service.domain.ExchangeRateResponse
 import no.esa.aop.service.mapper.EcbExchangeRateResponseMapper
-import no.esa.aop.utils.FailureRate
 import no.esa.aop.utils.Outcome
-import no.esa.aop.utils.maybeFail
 import org.springframework.stereotype.Service
 
 @Service
 class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRestInterface,
-						  private val currencyDao: ICurrencyDao,
-						  private val exchangeRateDao: IExchangeRateDao,
-						  private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
+                          private val currencyDao: ICurrencyDao,
+                          private val exchangeRateDao: IExchangeRateDao,
+                          private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
 
     override fun getLatestRates(baseCurrencySymbol: String?): Outcome<ExchangeRateResponse> {
-        val ecbExchangeRatesResponse = exchangeRateRestInterface.requestExchangeRates(baseCurrencySymbol)
-
-        val domainResponse = EcbExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(ecbExchangeRatesResponse)
+        val domainResponse = exchangeRateRestInterface.requestExchangeRates(baseCurrencySymbol).let { ecbExchangeRatesResponse ->
+            EcbExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(ecbExchangeRatesResponse)
+        }
 
         if (domainResponse is Outcome.Success) {
             saveResponse(domainResponse.value)
@@ -57,8 +55,8 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
     }
 
     private fun getCurrencyEntityIdsAndExchangeRates(currencyEntities: List<CurrencyEntity>,
-													 baseCurrencyEntityId: Int,
-													 exchangeRates: List<ExchangeRate>): Map<Int, Double> {
+                                                     baseCurrencyEntityId: Int,
+                                                     exchangeRates: List<ExchangeRate>): Map<Int, Double> {
 
         return currencyEntities.filterNot { currencyEntity ->
             currencyEntity.id == baseCurrencyEntityId
@@ -81,12 +79,12 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 
         val baseCurrencyEntity = getBaseCurrencyEntityId(currencyEntities, exchangeRateResponse.baseCurrency.symbol)
         val exchangeRatesResponseEntity = exchangeRateResponseDao.save(exchangeRateResponse.dateTime,
-																	   baseCurrencyEntity.id)
+                                                                       baseCurrencyEntity.id)
         val currencyEntityIdsAndExchangeRates = getCurrencyEntityIdsAndExchangeRates(currencyEntities,
-																					 baseCurrencyEntity.id,
-																					 exchangeRateResponse.exchangeRates)
+                                                                                     baseCurrencyEntity.id,
+                                                                                     exchangeRateResponse.exchangeRates)
         val exchangeRateEntities = saveExchangeRates(currencyEntityIdsAndExchangeRates,
-													 exchangeRatesResponseEntity.id)
+                                                     exchangeRatesResponseEntity.id)
 
         return exchangeRatesResponseEntity to exchangeRateEntities
     }
@@ -107,7 +105,8 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
         }
     }
 
-    private fun saveExchangeRates(currencyEntityIdsAndRates: Map<Int, Double>, exchangeRateRequestId: Int): List<ExchangeRateEntity> {
+    private fun saveExchangeRates(currencyEntityIdsAndRates: Map<Int, Double>,
+                                  exchangeRateRequestId: Int): List<ExchangeRateEntity> {
         return currencyEntityIdsAndRates.map { (currencyEntityId, rate) ->
             exchangeRateDao.saveRate(currencyEntityId, rate, exchangeRateRequestId)
         }

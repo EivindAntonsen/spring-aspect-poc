@@ -3,6 +3,7 @@ package no.esa.aop.repository.exchangeraterequest
 import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
+import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.ExchangeRateResponseEntity
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -10,6 +11,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.jvm.reflect
 
 @Repository
 class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateResponseDao {
@@ -44,7 +48,7 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun get(id: Int): ExchangeRateResponseEntity? {
-        val query = "select * from $SCHEMA.$TABLE_NAME where $PRIMARY_KEY = :id"
+        val query = QueryFileReader.readSqlFile(::get)
         val parameters = MapSqlParameterSource().apply {
             addValue(PRIMARY_KEY, id)
         }
@@ -59,7 +63,7 @@ class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchang
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getAll(): List<ExchangeRateResponseEntity> {
-        val query = "select * from $SCHEMA.$TABLE_NAME"
+        val query = QueryFileReader.readSqlFile(::getAll)
 
         return jdbcTemplate.query(query) { rs, _ ->
             ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),

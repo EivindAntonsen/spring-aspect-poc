@@ -3,6 +3,7 @@ package no.esa.aop.repository.exchangerate
 import no.esa.aop.annotation.DataAccess
 import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
+import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.ExchangeRateEntity
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -45,7 +46,7 @@ class ExchangeRateDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateDao
     @DataAccess
     @Logged(APIType.DATA_ACCESS)
     override fun getByExchangeRateResponseId(id: Int): List<ExchangeRateEntity> {
-        val query = "select * from $SCHEMA.$TABLE_NAME where $EXCHANGE_RATE_RESPONSE_ID = :exchange_rate_response_id"
+        val query = QueryFileReader.readSqlFile(::getByExchangeRateResponseId)
         val parameters = MapSqlParameterSource().apply {
             addValue(EXCHANGE_RATE_RESPONSE_ID, id)
         }
