@@ -52,11 +52,4 @@ interface ExchangeRateApi {
 				  ApiResponse(code = 500, message = "Internal server error", response = Error::class))
 	@RequestMapping(value = ["/exchange-rates/previous"], produces = ["application/json"], method = [RequestMethod.GET])
 	fun getPreviousExchangeRates(): ResponseEntity<ExchangeRateResponse>
-
-	@ApiOperation(value = "test datatypes")
-	@ApiResponses(ApiResponse(code = 200, message = "Success", response = ExchangeRateResponse::class))
-	@RequestMapping(value = ["/test"], produces = ["application/json"], method = [RequestMethod.GET])
-	fun testDataTypes()
-
-
 }

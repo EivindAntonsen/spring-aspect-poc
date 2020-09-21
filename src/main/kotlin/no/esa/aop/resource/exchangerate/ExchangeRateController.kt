@@ -62,16 +62,4 @@ class ExchangeRateController(private val exchangeRateService: IExchangeRateServi
             } else ResponseEntity.status(HttpStatus.NO_CONTENT).body(null)
         }
     }
-
-    override fun testDataTypes() {
-        with(exchangeRateService) {
-            string()
-            int()
-            map()
-            denseStructure()
-            generic(BigDecimal(250))
-            function()
-            anonymousObject(23)
-        }
-    }
 }

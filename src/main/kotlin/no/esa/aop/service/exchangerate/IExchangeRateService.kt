@@ -9,12 +9,4 @@ interface IExchangeRateService {
 	fun getPreviousRates(): ExchangeRateResponse?
 	fun getRatesForDay(localDate: LocalDate): Outcome<ExchangeRateResponse>
 	fun getLatesRatesFor(symbols: List<String>): Outcome<ExchangeRateResponse>
-
-	fun anonymousObject(id: Int): Any
-	fun function(): () -> Unit
-	fun <T> generic(t: T): () -> T
-	fun denseStructure(): Map<Pair<String, Double>, Map<List<Int>, String>>
-	fun map(): Map<String, String>
-	fun int(): Int
-	fun string(): String
 }

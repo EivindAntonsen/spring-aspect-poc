@@ -25,43 +25,6 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 						  private val exchangeRateDao: IExchangeRateDao,
 						  private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
 
-	@Logged(logLevel = LogLevel.INFO)
-	override fun string(): String {
-		return "this is a string"
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun int(): Int {
-		return 10
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun map(): Map<String, String> {
-		return mapOf("key" to "value", "anotherKey" to "anotherValue").toMap()
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun denseStructure(): Map<Pair<String, Double>, Map<List<Int>, String>> {
-		val map = mapOf(listOf(1, 2, 3) to "value").toMap()
-
-		return mapOf(("Key" to 1.12) to map)
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun <T> generic(t: T): () -> T {
-		return { t }
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun function(): () -> Unit {
-		return { println("Hi!") }
-	}
-
-	@Logged(logLevel = LogLevel.INFO)
-	override fun anonymousObject(id: Int): Any {
-		return object { val id: Int = id }
-	}
-
 	override fun getRatesForDay(localDate: LocalDate): Outcome<ExchangeRateResponse> {
 		val ecbResponse = exchangeRateRestInterface.getRatesForDay(localDate)
 
