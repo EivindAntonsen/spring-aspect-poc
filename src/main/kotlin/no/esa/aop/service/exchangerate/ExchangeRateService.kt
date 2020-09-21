@@ -1,5 +1,6 @@
 package no.esa.aop.service.exchangerate
 
+import no.esa.aop.annotation.Logged
 import no.esa.aop.integration.ecb.ExchangeRateRestInterface
 import no.esa.aop.integration.ecb.domain.EcbExchangeRateResponse
 import no.esa.aop.repository.currency.ICurrencyDao
@@ -13,7 +14,9 @@ import no.esa.aop.service.domain.ExchangeRate
 import no.esa.aop.service.domain.ExchangeRateResponse
 import no.esa.aop.service.mapper.EcbExchangeRateResponseMapper
 import no.esa.aop.utils.Outcome
+import org.springframework.boot.logging.LogLevel
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -21,6 +24,43 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 						  private val currencyDao: ICurrencyDao,
 						  private val exchangeRateDao: IExchangeRateDao,
 						  private val exchangeRateResponseDao: IExchangeRateResponseDao) : IExchangeRateService {
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun string(): String {
+		return "this is a string"
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun int(): Int {
+		return 10
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun map(): Map<String, String> {
+		return mapOf("key" to "value", "anotherKey" to "anotherValue").toMap()
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun denseStructure(): Map<Pair<String, Double>, Map<List<Int>, String>> {
+		val map = mapOf(listOf(1, 2, 3) to "value").toMap()
+
+		return mapOf(("Key" to 1.12) to map)
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun <T> generic(t: T): () -> T {
+		return { t }
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun function(): () -> Unit {
+		return { println("Hi!") }
+	}
+
+	@Logged(logLevel = LogLevel.INFO)
+	override fun anonymousObject(id: Int): Any {
+		return object { val id: Int = id }
+	}
 
 	override fun getRatesForDay(localDate: LocalDate): Outcome<ExchangeRateResponse> {
 		val ecbResponse = exchangeRateRestInterface.getRatesForDay(localDate)
