@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
  * @param interceptedFunction is the intercepted function that will be executed.
  */
 data class LoggableEvent<R>(val kClass: KClass<*>?,
-                            val functionName: String,
-                            val args: List<Any>,
-                            val loggingInfo: LoggingInfo,
-                            val interceptedFunction: () -> R)
+							val functionName: String,
+							val args: List<Any>,
+							val loggingInfo: LoggingInfo,
+							val interceptedFunction: () -> R)

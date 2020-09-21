@@ -5,8 +5,7 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.CurrencyEntity
-import no.esa.aop.utils.FailureRate
-import no.esa.aop.utils.maybeFail
+import org.springframework.boot.logging.LogLevel
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -16,71 +15,69 @@ import org.springframework.stereotype.Repository
 @Repository
 class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 
-    companion object {
-        const val SCHEMA = "ecb"
-        const val TABLE_NAME = "currency"
-        const val PRIMARY_KEY = "id"
-        const val SYMBOL = "symbol"
-    }
+	companion object {
+		const val SCHEMA = "ecb"
+		const val TABLE_NAME = "currency"
+		const val PRIMARY_KEY = "id"
+		const val SYMBOL = "symbol"
+	}
 
-    private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
+	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun save(symbol: String): CurrencyEntity {
-        val parameters = MapSqlParameterSource().apply {
-            addValue(SYMBOL, symbol)
-        }
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun save(symbol: String): CurrencyEntity {
+		val simpleJdbcInsert = SimpleJdbcInsert(jdbcTemplate).apply {
+			schemaName = SCHEMA
+			tableName = TABLE_NAME
+			usingGeneratedKeyColumns(PRIMARY_KEY)
+		}
 
-        val id = SimpleJdbcInsert(jdbcTemplate).apply {
-            schemaName = SCHEMA
-            tableName = TABLE_NAME
-            usingGeneratedKeyColumns(PRIMARY_KEY)
-        }.executeAndReturnKey(parameters).toInt()
+		val parameters = MapSqlParameterSource().apply {
+			addValue(SYMBOL, symbol)
+		}
 
-        return CurrencyEntity(id, symbol)
-    }
+		val id = simpleJdbcInsert.executeAndReturnKey(parameters).toInt()
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun get(id: Int): String? {
-        val query = QueryFileReader.readSqlFile(::get)
-        val parameters = MapSqlParameterSource().apply {
-            addValue(PRIMARY_KEY, id)
-        }
+		return CurrencyEntity(id, symbol)
+	}
 
-        return namedTemplate.queryForObject(query, parameters) { rs, _ ->
-            rs.getString(SYMBOL)
-        }
-    }
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun get(id: Int): String? {
+		val query = QueryFileReader.readSqlFile(::get)
+		val parameters = MapSqlParameterSource().apply {
+			addValue(PRIMARY_KEY, id)
+		}
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun getCurrencyEntitiesForSymbols(symbols: List<String>): List<CurrencyEntity> {
-        maybeFail(FailureRate.OFTEN)
+		return namedTemplate.queryForObject(query, parameters) { rs, _ ->
+			rs.getString(SYMBOL)
+		}
+	}
 
-        val query = QueryFileReader.readSqlFile(::getCurrencyEntitiesForSymbols)
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun getCurrencyEntitiesForSymbols(symbols: List<String>): List<CurrencyEntity> {
+		val query = QueryFileReader.readSqlFile(::getCurrencyEntitiesForSymbols)
 
-        return symbols.mapNotNull { symbol ->
-            val parameters = MapSqlParameterSource().apply {
-                addValue(SYMBOL, symbol)
-            }
+		return symbols.mapNotNull { symbol ->
+			val parameters = MapSqlParameterSource().apply {
+				addValue(SYMBOL, symbol)
+			}
 
-            namedTemplate.queryForObject(query, parameters) { rs, _ ->
-                CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
-            }
-        }
-    }
+			namedTemplate.queryForObject(query, parameters) { rs, _ ->
+				CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
+			}
+		}
+	}
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun getAll(): List<CurrencyEntity> {
-        maybeFail(FailureRate.OFTEN)
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS, LogLevel.INFO)
+	override fun getAll(): List<CurrencyEntity> {
+		val query = QueryFileReader.readSqlFile(::getAll)
 
-        val query = QueryFileReader.readSqlFile(::getAll)
-
-        return jdbcTemplate.query(query) { rs, _ ->
-            CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
-        }
-    }
+		return jdbcTemplate.query(query) { rs, _ ->
+			CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
+		}
+	}
 }

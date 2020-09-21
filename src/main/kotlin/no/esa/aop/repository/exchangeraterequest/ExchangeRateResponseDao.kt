@@ -5,8 +5,6 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.ExchangeRateResponseEntity
-import no.esa.aop.utils.FailureRate
-import no.esa.aop.utils.maybeFail
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -17,63 +15,57 @@ import java.time.LocalDateTime
 @Repository
 class ExchangeRateResponseDao(private val jdbcTemplate: JdbcTemplate) : IExchangeRateResponseDao {
 
-    companion object {
-        const val SCHEMA = "ecb"
-        const val TABLE_NAME = "exchange_rate_response"
-        const val PRIMARY_KEY = "id"
-        const val BASE_CURRENCY_ID = "base_currency_id"
-        const val DATETIME = "datetime"
-    }
+	companion object {
+		const val SCHEMA = "ecb"
+		const val TABLE_NAME = "exchange_rate_response"
+		const val PRIMARY_KEY = "id"
+		const val BASE_CURRENCY_ID = "base_currency_id"
+		const val DATETIME = "datetime"
+	}
 
-    private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
+	private val namedTemplate = NamedParameterJdbcTemplate(jdbcTemplate)
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
-        maybeFail(FailureRate.OFTEN)
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun save(dateTime: LocalDateTime, baseCurrencyEntityId: Int): ExchangeRateResponseEntity {
+		val parameters = MapSqlParameterSource().apply {
+			addValue(BASE_CURRENCY_ID, baseCurrencyEntityId)
+			addValue(DATETIME, dateTime)
+		}
 
-        val parameters = MapSqlParameterSource().apply {
-            addValue(BASE_CURRENCY_ID, baseCurrencyEntityId)
-            addValue(DATETIME, dateTime)
-        }
+		val id = SimpleJdbcInsert(jdbcTemplate).apply {
+			schemaName = SCHEMA
+			tableName = TABLE_NAME
+			usingGeneratedKeyColumns(PRIMARY_KEY)
+		}.executeAndReturnKey(parameters).toInt()
 
-        val id = SimpleJdbcInsert(jdbcTemplate).apply {
-            schemaName = SCHEMA
-            tableName = TABLE_NAME
-            usingGeneratedKeyColumns(PRIMARY_KEY)
-        }.executeAndReturnKey(parameters).toInt()
+		return ExchangeRateResponseEntity(id, baseCurrencyEntityId, dateTime)
+	}
 
-        return ExchangeRateResponseEntity(id, baseCurrencyEntityId, dateTime)
-    }
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun get(id: Int): ExchangeRateResponseEntity? {
+		val query = QueryFileReader.readSqlFile(::get)
+		val parameters = MapSqlParameterSource().apply {
+			addValue(PRIMARY_KEY, id)
+		}
 
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun get(id: Int): ExchangeRateResponseEntity? {
-        maybeFail(FailureRate.OFTEN)
+		return namedTemplate.queryForObject(query, parameters) { rs, _ ->
+			ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
+									   rs.getInt(BASE_CURRENCY_ID),
+									   rs.getTimestamp(DATETIME).toLocalDateTime())
+		}
+	}
 
-        val query = QueryFileReader.readSqlFile(::get)
-        val parameters = MapSqlParameterSource().apply {
-            addValue(PRIMARY_KEY, id)
-        }
+	@DataAccess
+	@Logged(APIType.DATA_ACCESS)
+	override fun getAll(): List<ExchangeRateResponseEntity> {
+		val query = QueryFileReader.readSqlFile(::getAll)
 
-        return namedTemplate.queryForObject(query, parameters) { rs, _ ->
-            ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
-                                       rs.getInt(BASE_CURRENCY_ID),
-                                       rs.getTimestamp(DATETIME).toLocalDateTime())
-        }
-    }
-
-    @DataAccess
-    @Logged(APIType.DATA_ACCESS)
-    override fun getAll(): List<ExchangeRateResponseEntity> {
-        maybeFail(FailureRate.OFTEN)
-
-        val query = QueryFileReader.readSqlFile(::getAll)
-
-        return jdbcTemplate.query(query) { rs, _ ->
-            ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
-                                       rs.getInt(BASE_CURRENCY_ID),
-                                       rs.getTimestamp(DATETIME).toLocalDateTime())
-        }
-    }
+		return jdbcTemplate.query(query) { rs, _ ->
+			ExchangeRateResponseEntity(rs.getInt(PRIMARY_KEY),
+									   rs.getInt(BASE_CURRENCY_ID),
+									   rs.getTimestamp(DATETIME).toLocalDateTime())
+		}
+	}
 }

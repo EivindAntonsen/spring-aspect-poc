@@ -12,5 +12,5 @@ import org.springframework.boot.logging.LogLevel
  * @param logger is an instance of a logger appropriate for the event.
  */
 data class LoggingInfo(val apiType: APIType,
-                       val logLevel: LogLevel,
-                       val logger: Logger)
+					   val logLevel: LogLevel,
+					   val logger: Logger)
