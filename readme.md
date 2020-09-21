@@ -20,9 +20,8 @@ Clone repository, start application from `src/main/kotlin/no/esa/aop/application
 ### Usage
 1. Build & run application in your IDE.
 2. View the [Swagger-UI](http://localhost:8096/swagger-ui.html) in a browser
-3. Try the requests in the `exchange-rate-controller` multiple times.
-    * they will at times fail, and this is intentional - the point is to see how the failures are handled.
-4. To disable random failures, remove all usages of `/Utils/DevUtils.maybeFail()`  from code.
+3. Try the requests in the `exchange-rate-controller`.
+4. To see how errors are handled, throw a few Exceptions in functions annotated with `@DataAccess`.
 
 ## Examples
 
