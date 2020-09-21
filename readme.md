@@ -56,4 +56,4 @@ The log level and api type are optional parameters that can be defined per funct
 
 #### Various datatypes
 
-![](examples/various datatypes.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/various%20datatypes.jpg)
