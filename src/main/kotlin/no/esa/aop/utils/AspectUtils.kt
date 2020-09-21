@@ -15,27 +15,27 @@ import kotlin.reflect.full.functions
  * which is converted to a KClass instance.
  */
 fun getKClass(joinPoint: JoinPoint): KClass<out Any>? {
-    // Removing type name from signature string
-    val typeAndQualifiedFunctionName = joinPoint.signature.toString().split(" ")
-    val qualifiedFunctionName = typeAndQualifiedFunctionName[1]
+	// Removing type name from signature string
+	val typeAndQualifiedFunctionName = joinPoint.signature.toString().split(" ")
+	val qualifiedFunctionName = typeAndQualifiedFunctionName[1]
 
-    // Reducing to a qualified class name
-    val qualifiedClassAndFunctionName = qualifiedFunctionName.split(".${joinPoint.signature.name}")
-    val qualifiedClassName = qualifiedClassAndFunctionName[0]
+	// Reducing to a qualified class name
+	val qualifiedClassAndFunctionName = qualifiedFunctionName.split(".${joinPoint.signature.name}")
+	val qualifiedClassName = qualifiedClassAndFunctionName[0]
 
-    return try {
-        Class.forName(qualifiedClassName).kotlin
-    } catch (error: Exception) {
-        null
-    }
+	return try {
+		Class.forName(qualifiedClassName).kotlin
+	} catch (error: Exception) {
+		null
+	}
 }
 
 inline fun <reified T : Annotation> getAnnotation(kClass: KClass<*>, functionName: String): T? {
-    return kClass.functions.firstOrNull { function ->
-        function.name == functionName
-    }?.annotations?.filterIsInstance<T>()?.firstOrNull()
+	return kClass.functions.firstOrNull { function ->
+		function.name == functionName
+	}?.annotations?.filterIsInstance<T>()?.firstOrNull()
 }
 
 fun getLogger(joinPoint: ProceedingJoinPoint): Logger {
-    return LoggerFactory.getLogger(joinPoint.signature.declaringTypeName)
+	return LoggerFactory.getLogger(joinPoint.signature.declaringTypeName)
 }

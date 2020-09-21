@@ -11,5 +11,5 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2
 class AopLoggingApplication
 
 fun main(args: Array<String>) {
-    runApplication<AopLoggingApplication>(*args)
+	runApplication<AopLoggingApplication>(*args)
 }

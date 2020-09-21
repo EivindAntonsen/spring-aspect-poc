@@ -13,21 +13,21 @@ import kotlin.reflect.full.memberFunctions
 @Component
 class DataAccessAspect {
 
-    @Around("@annotation(no.esa.aop.annotation.DataAccess)")
-    fun dataAccessOperation(joinPoint: ProceedingJoinPoint): Any? {
-        val kClass = getKClass(joinPoint)
-        val kFunction = kClass?.memberFunctions?.firstOrNull {
-            it.name == joinPoint.signature.name
-        }
+	@Around("@annotation(no.esa.aop.annotation.DataAccess)")
+	fun dataAccessOperation(joinPoint: ProceedingJoinPoint): Any? {
+		val kClass = getKClass(joinPoint)
+		val kFunction = kClass?.memberFunctions?.firstOrNull {
+			it.name == joinPoint.signature.name
+		}
 
-        return try {
-            joinPoint.proceed()
-        } catch (error: Exception) {
-            getLogger(joinPoint).error(error.message)
+		return try {
+			joinPoint.proceed()
+		} catch (error: Exception) {
+			getLogger(joinPoint).error(error.message)
 
-            if (kClass != null && kFunction != null) {
-                throw DataAccessException(kFunction, error)
-            } else throw error
-        }
-    }
+			if (kClass != null && kFunction != null) {
+				throw DataAccessException(kFunction, error)
+			} else throw error
+		}
+	}
 }
