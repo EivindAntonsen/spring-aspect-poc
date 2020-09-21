@@ -5,6 +5,7 @@ import no.esa.aop.annotation.Logged
 import no.esa.aop.enums.APIType
 import no.esa.aop.repository.QueryFileReader
 import no.esa.aop.repository.entity.CurrencyEntity
+import org.springframework.boot.logging.LogLevel
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -26,15 +27,17 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 	@DataAccess
 	@Logged(APIType.DATA_ACCESS)
 	override fun save(symbol: String): CurrencyEntity {
+		val simpleJdbcInsert = SimpleJdbcInsert(jdbcTemplate).apply {
+			schemaName = SCHEMA
+			tableName = TABLE_NAME
+			usingGeneratedKeyColumns(PRIMARY_KEY)
+		}
+
 		val parameters = MapSqlParameterSource().apply {
 			addValue(SYMBOL, symbol)
 		}
 
-		val id = SimpleJdbcInsert(jdbcTemplate).apply {
-			schemaName = SCHEMA
-			tableName = TABLE_NAME
-			usingGeneratedKeyColumns(PRIMARY_KEY)
-		}.executeAndReturnKey(parameters).toInt()
+		val id = simpleJdbcInsert.executeAndReturnKey(parameters).toInt()
 
 		return CurrencyEntity(id, symbol)
 	}
@@ -69,7 +72,7 @@ class CurrencyDao(private val jdbcTemplate: JdbcTemplate) : ICurrencyDao {
 	}
 
 	@DataAccess
-	@Logged(APIType.DATA_ACCESS)
+	@Logged(APIType.DATA_ACCESS, LogLevel.INFO)
 	override fun getAll(): List<CurrencyEntity> {
 		val query = QueryFileReader.readSqlFile(::getAll)
 

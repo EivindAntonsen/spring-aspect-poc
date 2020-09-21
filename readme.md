@@ -13,8 +13,6 @@ This is a basic currency exchange rate API that displays aspect oriented program
     - Intercepts function calls to functions annotated with `@DataAccess`.
     These functions will wrap the function call in a try/catch, transforming the potential SQL-related exceptions to a custom one along with a KFunction<*> object. This object is used to 
     find the relevant error message for the given function that failed in the error messages resource bundle.
-    
----
 
 ### Setup
 Clone repository, start application from `src/main/kotlin/no/esa/aop/application/AopApplication.main`.
@@ -25,3 +23,33 @@ Clone repository, start application from `src/main/kotlin/no/esa/aop/application
 3. Try the requests in the `exchange-rate-controller` multiple times.
     * they will at times fail, and this is intentional - the point is to see how the failures are handled.
 4. To disable random failures, remove all usages of `/Utils/DevUtils.maybeFail()`  from code.
+
+## Examples
+
+### Data access operations
+
+#### DataAccessAspect
+This is called 'around' every function annotated with `@DataAccess`. `joinPoint.proceed()` calls the intercepted function. Any exception is immediately mapped to a DataAccess exception,
+which is picked up by `/resource/ExceptionHandler.kt`.
+
+![](examples/DataAccess Aspect.jpg)
+
+#### Function annotation
+Abstracting away error handling from virtually identical functions improves readability.
+
+![](examples/DataAccess function 3.jpg)
+
+#### DataAccess error logging
+
+![](examples/DataAccess console error 3.jpg)
+
+#### DataAccess standard logging
+![](examples/Console 1.jpg)
+
+### Standard logging
+
+#### LogAspect
+This aspect inspects the function signature and return value and logs the events in a clean format to the console & to file.
+The log level and api type are optional parameters that can be defined per function.
+
+![](examples/Logged function example 1.jpg)

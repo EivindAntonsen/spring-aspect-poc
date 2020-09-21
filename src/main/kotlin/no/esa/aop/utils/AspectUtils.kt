@@ -5,7 +5,9 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.full.functions
+import kotlin.reflect.full.memberFunctions
 
 /**
  * Attempts to get a KClass instance from a [joinPoint].
@@ -28,6 +30,15 @@ fun getKClass(joinPoint: JoinPoint): KClass<out Any>? {
 	} catch (error: Exception) {
 		null
 	}
+}
+
+fun getKFunction(joinPoint: JoinPoint): KFunction<*>? {
+	val kClass = getKClass(joinPoint)
+
+	return kClass?.memberFunctions?.firstOrNull {
+		it.name == joinPoint.signature.name
+	}
+
 }
 
 inline fun <reified T : Annotation> getAnnotation(kClass: KClass<*>, functionName: String): T? {
