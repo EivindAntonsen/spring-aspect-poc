@@ -32,19 +32,19 @@ Clone repository, start application from `src/main/kotlin/no/esa/aop/application
 This is called 'around' every function annotated with `@DataAccess`. `joinPoint.proceed()` calls the intercepted function. Any exception is immediately mapped to a DataAccess exception,
 which is picked up by `/resource/ExceptionHandler.kt`.
 
-![](examples/DataAccess Aspect.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/DataAccess%20Aspect.jpg)
 
 #### Function annotation
 Abstracting away error handling from virtually identical functions improves readability.
 
-![](examples/DataAccess function 3.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/DataAccess%20function%203.jpg)
 
 #### DataAccess error logging
 
-![](examples/DataAccess console error 3.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/DataAccess%20console%20error%203.jpg)
 
 #### DataAccess standard logging
-![](examples/Console 1.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/Console%201.jpg)
 
 ### Standard logging
 
@@ -52,4 +52,4 @@ Abstracting away error handling from virtually identical functions improves read
 This aspect inspects the function signature and return value and logs the events in a clean format to the console & to file.
 The log level and api type are optional parameters that can be defined per function.
 
-![](examples/Logged function example 1.jpg)
+![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/Logged%20function%20example%201.jpg)
