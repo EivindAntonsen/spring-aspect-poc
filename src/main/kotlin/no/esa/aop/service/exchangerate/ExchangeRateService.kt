@@ -41,13 +41,20 @@ class ExchangeRateService(private val exchangeRateRestInterface: ExchangeRateRes
 	}
 
 	private fun mapAndSaveResponse(response: Outcome<EcbExchangeRateResponse>): Outcome<ExchangeRateResponse> {
-		val domainResponse = EcbExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(response)
+		val domainResponse = mapResponse(response)
+		saveResponse(domainResponse)
 
+		return domainResponse
+	}
+
+	private fun mapResponse(response: Outcome<EcbExchangeRateResponse>): Outcome<ExchangeRateResponse> {
+		return EcbExchangeRateResponseMapper.ecbRequestResponseToDomainResponse(response)
+	}
+
+	private fun saveResponse(domainResponse: Outcome<ExchangeRateResponse>) {
 		if (domainResponse is Outcome.Success) {
 			saveResponse(domainResponse.value)
 		}
-
-		return domainResponse
 	}
 
 	override fun getPreviousRates(): ExchangeRateResponse? {

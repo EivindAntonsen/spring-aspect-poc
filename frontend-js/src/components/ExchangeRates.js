@@ -17,7 +17,7 @@ class ExchangeRates extends React.Component {
 }
 
 ExchangeRates.propTypes = {
-  base: PropTypes.any,
+  base: PropTypes.string,
   date: PropTypes.any,
   rates: PropTypes.any
 }
