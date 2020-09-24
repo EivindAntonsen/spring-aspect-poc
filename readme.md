@@ -31,12 +31,42 @@ Clone repository, start application from `src/main/kotlin/no/esa/aop/application
 This is called 'around' every function annotated with `@DataAccess`. `joinPoint.proceed()` calls the intercepted function. Any exception is immediately mapped to a DataAccess exception,
 which is picked up by `/resource/ExceptionHandler.kt`.
 
-![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/DataAccess%20Aspect.jpg)
+```kotlin
+@Aspect
+@Component
+class DataAccessAspect {
+
+	@Around("@annotation(no.esa.aop.annotation.DataAccess)")
+	fun dataAccessOperation(joinPoint: ProceedingJoinPoint): Any? {
+		val kFunction = getKFunction(joinPoint)
+
+		return try {
+			joinPoint.proceed()
+		} catch (error: Exception) {
+			getLogger(joinPoint).error(error.message)
+
+			if (kFunction != null) {
+				throw DataAccessException(kFunction, error)
+			} else throw error
+		}
+	}
+}
+```
 
 #### Function annotation
 Abstracting away error handling from virtually identical functions improves readability.
 
-![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/DataAccess%20function%203.jpg)
+```kotlin
+@DataAccess
+@Logged(APIType.DATA_ACCESS, LogLevel.INFO)
+override fun getAll(): List<CurrencyEntity> {
+	val query = QueryFileReader.readSqlFile(::getAll)
+
+	return jdbcTemplate.query(query) { rs, _ ->
+		CurrencyEntity(rs.getInt(PRIMARY_KEY), rs.getString(SYMBOL))
+	}
+}
+```
 
 #### DataAccess error logging
 
@@ -51,8 +81,12 @@ Abstracting away error handling from virtually identical functions improves read
 This aspect inspects the function signature and return value and logs the events in a clean format to the console & to file.
 The log level and api type are optional parameters that can be defined per function.
 
-![](https://github.com/EivindAntonsen/spring-aspect-poc/blob/master/examples/Logged%20function%20example%201.jpg)
-
+```kotlin
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class Logged(val apiType: APIType = APIType.INTERNAL,
+						val logLevel: LogLevel = LogLevel.DEBUG)
+```
 
 #### Various datatypes
 
