@@ -85,7 +85,7 @@ The log level and api type are optional parameters that can be defined per funct
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Logged(val apiType: APIType = APIType.INTERNAL,
-						val logLevel: LogLevel = LogLevel.DEBUG)
+			val logLevel: LogLevel = LogLevel.DEBUG)
 ```
 
 #### Various datatypes
